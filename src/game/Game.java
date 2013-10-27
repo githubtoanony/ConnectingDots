@@ -246,6 +246,8 @@ public class Game extends Frame implements Runnable, MouseListener
 		cursorX = (MouseInfo.getPointerInfo().getLocation().x - windowX);         
 		cursorY = (MouseInfo.getPointerInfo().getLocation().y) - windowY;
 		
+		System.out.println("X: " + cursorX + " Y: " + cursorY);
+		
 		// Update menu screen if active.
 		if (menu.get_active()) 
 		{

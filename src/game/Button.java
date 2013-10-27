@@ -9,6 +9,7 @@ import javax.imageio.ImageIO;
 public class Button {
 	private BufferedImage image[];
 	private int state;
+	private boolean visible;
 	private int x;
 	private int y;
 	private int width;
@@ -22,10 +23,11 @@ public class Button {
 	/*
 	 * Class constructor.
 	 */
-	public Button (int newX, int newY, int newWidth, int newHeight)
+	public Button (int newX, int newY, int newWidth, int newHeight, boolean newVisible)
 	{
 		image = new BufferedImage[2];
 		state = 0;
+		visible = newVisible;
 		x = newX;
 		y = newY;
 		width = newWidth;
@@ -149,6 +151,17 @@ public class Button {
 	public int get_state()
 	{
 		return state;
+	}
+	
+	public void set_visible(boolean newVisible)
+	{
+		visible = newVisible;
+		return;
+	}
+	
+	public boolean get_visible()
+	{
+		return visible;
 	}
 	
 	/*

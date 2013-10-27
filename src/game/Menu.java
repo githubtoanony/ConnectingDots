@@ -37,16 +37,16 @@ public class Menu
 		
 		background = ImageIO.read(new File("res/menu/background.png"));
 		
-		start = new Button((350 + offsetX), (205 + offsetY), 260, 100);
+		start = new Button((350 + offsetX), (205 + offsetY), 260, 100, true);
 		start.set_image(new File("res/menu/start.png"), new File("res/menu/start_pressed.png"));
 
-		multiplayer = new Button((350 + offsetX), (325 + offsetY), 260, 100);
+		multiplayer = new Button((350 + offsetX), (325 + offsetY), 260, 100, true);
 		multiplayer.set_image(new File("res/menu/multiplayer.png"), new File("res/menu/multiplayer_pressed.png"));
 
-		records = new Button((350 + offsetX), (445 + offsetY), 260, 100);
+		records = new Button((350 + offsetX), (445 + offsetY), 260, 100, true);
 		records.set_image(new File("res/menu/records.png"), new File("res/menu/records_pressed.png"));
 		
-		settings = new Button((350 + offsetX), (565 + offsetY), 260, 100);
+		settings = new Button((350 + offsetX), (565 + offsetY), 260, 100, true);
 		settings.set_image(new File("res/menu/settings.png"), new File("res/menu/settings_pressed.png"));
 	}
 	

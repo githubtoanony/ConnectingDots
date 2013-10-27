@@ -22,9 +22,14 @@ public class GameBoard
 	private BufferedImage dots;
 	private BufferedImage grid[];
 	
+	// Warning images
+	private Button warning_menu;
+	
 	// Buttons.
 	private Button menu;
 	private Button options;
+	private Button continue_button;
+	private Button cancel;
 	
 	// Blocks in the game
 	private Block block[][];
@@ -64,11 +69,20 @@ public class GameBoard
 		grid[3] = ImageIO.read(new File("res/InGame/grid_p3.png"));
 		grid[4] = ImageIO.read(new File("res/InGame/grid_p4.png"));
 		
-		menu = new Button(offsetX, offsetY, 150, 30);
+		menu = new Button(offsetX, offsetY, 150, 30, true);
 		menu.set_image(new File("res/InGame/menu.png"), new File("res/InGame/menu_pressed.png"));
 		
-		options = new Button((801 + offsetX), offsetY, 150, 30);
+		options = new Button((801 + offsetX), offsetY, 150, 30, true);
 		options.set_image(new File("res/InGame/options.png"), new File("res/InGame/options_pressed.png"));
+		
+		warning_menu = new Button((330 + offsetX), (260 + offsetY), 320, 160, false);
+		warning_menu.set_image(new File("res/InGame/Warning_menu.png"));
+				
+		continue_button = new Button((350 + offsetX), (385 + offsetY), 120,25, true);
+		continue_button.set_image(new File("res/InGame/continue_button.png"), new File("res/InGame/continue_button_pressed.png"));
+		
+		cancel = new Button((510 + offsetX), (385 + offsetY), 120, 25, true);
+		cancel.set_image(new File("res/InGame/cancel_button.png"), new File("res/InGame/cancel_button_pressed.png"));
 		
 		block = new Block[16][12];
 		for (int i = 0; i < 16; i++) for (int j = 0; j < 12; j++) 
@@ -119,9 +133,7 @@ public class GameBoard
 	 */
 	public int update (int cursorX, int cursorY, boolean clicked) throws IOException
 	{
-		boolean block_closed = false;
-		
-		// Game over situation. *Fix draw situation*
+		// Game over situation. *Need to fix draw situation*
 		if ((player[0].get_score() + player[1].get_score() + player[2].get_score() + player[3].get_score()) == 192)
 		{
 			int winner = 1;
@@ -134,236 +146,295 @@ public class GameBoard
 		}
 		
 		// Number of player selection screen, after that start the game.
-		if (current_player == 0 ) current_player = 1;
-		
-		// Searching for mouse position.
-		if (cursorY >100) 
+		if (current_player == 0 ) 
 		{
-			// If the cursor is inside the game board.
-			if (cursorX >= 113 && cursorX < 850 && cursorY >= 108 && cursorY < 670)
+			current_player = 1;
+			return 0;
+		}
+		
+		// Searching for mouse position when a warning is active
+		if (warning_menu.get_visible()) return check_warnings(cursorX, cursorY, clicked);
+		
+		// Searching for mouse position inside the game board.
+		if (cursorX >= 105 && cursorX <= 860 && cursorY >= 105 && cursorY <= 675) return check_inside(cursorX, cursorY, clicked);
+		
+		// Searching for mouse position outside the game board.
+		if (cursorY <= 100) return check_outside(cursorX, cursorY, clicked);
+		
+		// Returning 0 means that it has to keep updating.
+		return 0;
+	}
+	
+	/*
+	 * Searching for mouse position when a warning is active
+	 */
+	private int check_warnings(int cursorX, int cursorY, boolean clicked)
+	{
+		// If the cursor is hovering continue button
+		if (cursorX >= continue_button.start_x && cursorX < continue_button.end_x && cursorY >= continue_button.start_y && cursorY < continue_button.end_y)
+		{
+			continue_button.set_state(1);
+			cancel.set_state(0);
+						
+			if (clicked == true)
 			{
-				int row, column;
-				int orientation = 0;
-					
-				// Finding out the row and column.
-				row = ((cursorX - 113) / 45);
-				column = ((cursorY - 108) / 45);
-					
-				// Testing collision with the boundaries.
-				if(row < 16 && column < 12)
-				{
-					if (vert_coll_detector[row][column].contains(cursorX, cursorY)) 
-					{
-						current_selection.set_active(true);
-						current_selection.set_coordinates(row, column, 1);
-						orientation = 1;
-					}
-					else if (hori_coll_detector[row][column].contains(cursorX, cursorY)) 
-					{
-						current_selection.set_active(true);
-						current_selection.set_coordinates(row, column, 0);
-						orientation = 0;
-					}
-					else current_selection.set_active(false);
-				}
-				else if (row == 16 && column < 12)
-				{
-					if (vert_coll_detector[row][column].contains(cursorX, cursorY)) 
-					{
-						current_selection.set_active(true);
-						current_selection.set_coordinates(row, column, 1);
-						orientation = 1;
-					}
-					else current_selection.set_active(false);
-				}
-				else if (row < 16 && column == 12)
-				{
-					if (hori_coll_detector[row][column].contains(cursorX, cursorY)) 
-					{
-						current_selection.set_active(true);
-						current_selection.set_coordinates(row, column, 0);
-						orientation = 0;
-					}
-					else current_selection.set_active(false);
-				}
-				
-				// Finding out the blocks
-				
-				
-				// If clicked
-				if (clicked == true && current_selection.get_active() && current_player != 0)
-				{
-					if (orientation == 0)
-					{
-						if (!horizontal_trace[row][column].get_marked())
-						{
-							// Updating the trace.
-							horizontal_trace[row][column].set_marked(true);
-							switch (current_player)
-							{
-								case 1: horizontal_trace[row][column].set_image(new File("res/InGame/bar_hor_1.png")); break;
-								case 2: horizontal_trace[row][column].set_image(new File("res/InGame/bar_hor_2.png")); break;
-								case 3: horizontal_trace[row][column].set_image(new File("res/InGame/bar_hor_3.png")); break;
-								case 4: horizontal_trace[row][column].set_image(new File("res/InGame/bar_hor_4.png")); break;
-							}
-							horizontal_trace[row][column].set_active(true);
-							horizontal_trace[row][column].set_coordinates((119 + (45 * row)), (114 + (45 * column)));
-							
-							// Updating the block.
-							if(row >= 0 && row < 16 && column > 0 && column < 12)
-							{
-								if (block[row][column].set_trace(2, current_player))
-								{
-									player[current_player - 1].set_score(1);
-									block_closed |= true;
-								}
-								
-								if (block[row][column - 1].set_trace(1, current_player))
-								{
-									player[current_player - 1].set_score(1);
-									block_closed |= true;
-								}
-							}
-							else if(row < 16 && column == 0 && column < 12)
-							{
-								if (block[row][column].set_trace(2, current_player))
-								{
-									player[current_player - 1].set_score(1);
-									block_closed = true;	
-								}
-							}
-							else if (row == 0 && column == 0)
-							{
-								if (block[row][column].set_trace(2, current_player))
-								{
-									player[current_player - 1].set_score(1);
-									block_closed = true;
-								}
-							}
-							else if (row < 16 && column == 12)
-							{
-								if (block[row][column - 1].set_trace(1, current_player))
-								{
-									player[current_player - 1].set_score(1);
-									block_closed = true;
-								}
-							}
-						}
-						else return 0;
-					}
-					else if (orientation == 1)
-					{
-						if (!vertical_trace[row][column].get_marked())
-						{
-							// Updating the trace.
-							vertical_trace[row][column].set_marked(true);
-							switch (current_player)
-							{
-								case 1: vertical_trace[row][column].set_image(new File("res/InGame/bar_ver_1.png")); break;
-								case 2: vertical_trace[row][column].set_image(new File("res/InGame/bar_ver_2.png")); break;
-								case 3: vertical_trace[row][column].set_image(new File("res/InGame/bar_ver_3.png")); break;
-								case 4: vertical_trace[row][column].set_image(new File("res/InGame/bar_ver_4.png")); break;
-							}
-							vertical_trace[row][column].set_active(true);
-							vertical_trace[row][column].set_coordinates((119 + (45 * row)), (116 +(45 * column)));
-							
-							// Updating the block.
-							if(row > 0 && row < 16 && column >= 0 && column < 12)
-							{
-								if (block[row][column].set_trace(3, current_player))
-								{
-									player[current_player - 1].set_score(1);
-									block_closed |= true;
-								}
-								
-								if (block[row - 1][column].set_trace(4, current_player))
-								{
-									player[current_player - 1].set_score(1);
-									block_closed |= true;
-								}
-							}
-							else if(row == 0 && row < 16 && column < 12)
-							{
-								if (block[row][column].set_trace(3, current_player))
-								{
-									player[current_player - 1].set_score(1);
-									block_closed = true;
-								}
-							}
-							else if (row == 0 && column == 0)
-							{
-								if (block[row][column].set_trace(3, current_player))
-								{
-									player[current_player - 1].set_score(1);
-									block_closed = true;
-								}
-							}
-							else if (row == 16 && column < 12)
-							{
-								if (block[row - 1][column].set_trace(4, current_player))
-								{
-									player[current_player - 1].set_score(1);
-									block_closed = true;
-								}
-							}
-						}
-						else return 0;
-					}
-					// After the click, change the player turn.
-					current_selection.set_active(false);
-					
-					if (!last_selection.get_active()) last_selection.set_active(true);
-					last_selection.set_coordinates(row, column, orientation);
-					
-					if (block_closed == true) current_player--;
-					
-					current_player = ((current_player) % 4) + 1;
-					current_selection.set_state(current_player);
-				}
-			}
-			else // Otherwise, if the cursor is outside the game board.
-			{
-				current_selection.set_active(false);
+				this.active = false;
+				return 1;
 			}
 		}
-		else if (cursorY <= 100) 
+		else if (cursorX >= cancel.start_x && cursorX < cancel.end_x && cursorY >= cancel.start_y && cursorY < cancel.end_y)
 		{
-			current_selection.set_active(false);
-			// If mouse hovers on menu button.
-			if((cursorX >= menu.start_x) && (cursorX <= menu.end_x) && (cursorY >= menu.start_y) && (cursorY <= menu.end_y)) 
-			{ 
-				menu.set_state(1);
-				options.set_state(0);
+			continue_button.set_state(0);
+			cancel.set_state(1);
 						
-				if (clicked == true)
-				{
-					this.active = false;
-					return 1;
-				}
-			}
-			// If mouse hovers on options button.
-			else if((cursorX >= options.start_x) && (cursorX <= options.end_x) && (cursorY >= options.start_y) && (cursorY <= options.end_y)) 
+			if (clicked == true)
 			{
-				options.set_state(1);
-				menu.set_state(0);
-						
-				if (clicked == true)
-				{
-					// Show options menu
-				}
-			}
-			else
-			{
-				menu.set_state(0);
-				options.set_state(0);
+				warning_menu.set_visible(false);
 			}
 		}
 		else
 		{
-			// Do something.
+			continue_button.set_state(0);
+			cancel.set_state(0);
+		}
+					
+		return 0;
+	}
+	
+	/*
+	 * Searching for mouse position outside the game board.
+	 */
+	private int check_outside(int cursorX, int cursorY, boolean clicked)
+	{
+		current_selection.set_active(false);
+		
+		// If mouse hovers on menu button.
+		if((cursorX >= menu.start_x) && (cursorX <= menu.end_x) && (cursorY >= menu.start_y) && (cursorY <= menu.end_y)) 
+		{
+			menu.set_state(1);
+			options.set_state(0);
+					
+			if (clicked == true)
+			{
+				warning_menu.set_visible(true);
+				//this.active = false;
+				//return 1;
+			}
+		}
+		// If mouse hovers on options button.
+		else if((cursorX >= options.start_x) && (cursorX <= options.end_x) && (cursorY >= options.start_y) && (cursorY <= options.end_y)) 
+		{
+			options.set_state(1);
+			menu.set_state(0);
+					
+			if (clicked == true)
+			{
+				// Show options menu
+			}
+		}
+		else
+		{
+			menu.set_state(0);
+			options.set_state(0);
 		}
 		
-		// Returning 0 means that it has to keep updating.
+		return 0;
+	}
+	
+	/*
+	 * Searching for mouse position inside the game board.
+	 */
+	private int check_inside(int cursorX, int cursorY, boolean clicked) throws IOException
+	{
+		boolean block_closed = false;
+		
+		// If the cursor is inside the game board.
+		if (cursorX >= 113 && cursorX < 850 && cursorY >= 108 && cursorY < 670)
+		{
+			int row, column;
+			int orientation = 0;
+							
+			// Finding out the row and column.
+			row = ((cursorX - 113) / 45);
+			column = ((cursorY - 108) / 45);
+							
+			// Testing collision with the boundaries.
+			if(row < 16 && column < 12)
+			{
+				if (vert_coll_detector[row][column].contains(cursorX, cursorY)) 
+				{
+					current_selection.set_active(true);
+					current_selection.set_coordinates(row, column, 1);
+					orientation = 1;
+				}
+				else if (hori_coll_detector[row][column].contains(cursorX, cursorY)) 
+				{
+					current_selection.set_active(true);
+					current_selection.set_coordinates(row, column, 0);
+					orientation = 0;
+				}
+				else current_selection.set_active(false);
+			}
+			else if (row == 16 && column < 12)
+			{
+				if (vert_coll_detector[row][column].contains(cursorX, cursorY)) 
+				{
+					current_selection.set_active(true);
+					current_selection.set_coordinates(row, column, 1);
+					orientation = 1;
+				}
+				else current_selection.set_active(false);
+			}
+			else if (row < 16 && column == 12)
+			{
+				if (hori_coll_detector[row][column].contains(cursorX, cursorY)) 
+				{
+					current_selection.set_active(true);
+					current_selection.set_coordinates(row, column, 0);
+					orientation = 0;
+				}
+				else current_selection.set_active(false);
+			}
+						
+			// Finding out the blocks
+			
+			// If clicked
+			if (clicked == true && current_selection.get_active() && current_player != 0)
+			{
+				if (orientation == 0)
+				{
+					if (!horizontal_trace[row][column].get_marked())
+					{
+						// Updating the trace.
+						horizontal_trace[row][column].set_marked(true);
+						switch (current_player)
+						{
+							case 1: horizontal_trace[row][column].set_image(new File("res/InGame/bar_hor_1.png")); break;
+							case 2: horizontal_trace[row][column].set_image(new File("res/InGame/bar_hor_2.png")); break;
+							case 3: horizontal_trace[row][column].set_image(new File("res/InGame/bar_hor_3.png")); break;
+							case 4: horizontal_trace[row][column].set_image(new File("res/InGame/bar_hor_4.png")); break;
+						}
+						horizontal_trace[row][column].set_active(true);
+						horizontal_trace[row][column].set_coordinates((119 + (45 * row)), (114 + (45 * column)));
+						
+						// Updating the block.
+						if(row >= 0 && row < 16 && column > 0 && column < 12)
+						{
+							if (block[row][column].set_trace(2, current_player))
+							{
+								player[current_player - 1].set_score(1);
+								block_closed |= true;
+							}
+							
+							if (block[row][column - 1].set_trace(1, current_player))
+							{
+								player[current_player - 1].set_score(1);
+								block_closed |= true;
+							}
+						}
+						else if(row < 16 && column == 0 && column < 12)
+						{
+							if (block[row][column].set_trace(2, current_player))
+							{
+								player[current_player - 1].set_score(1);
+								block_closed = true;	
+							}
+						}
+						else if (row == 0 && column == 0)
+						{
+							if (block[row][column].set_trace(2, current_player))
+							{
+								player[current_player - 1].set_score(1);
+								block_closed = true;
+							}
+						}
+						else if (row < 16 && column == 12)
+						{
+							if (block[row][column - 1].set_trace(1, current_player))
+							{
+								player[current_player - 1].set_score(1);
+								block_closed = true;
+							}
+						}
+					}
+					else return 0;
+				}
+				else if (orientation == 1)
+				{
+					if (!vertical_trace[row][column].get_marked())
+					{
+						// Updating the trace.
+						vertical_trace[row][column].set_marked(true);
+						switch (current_player)
+						{
+							case 1: vertical_trace[row][column].set_image(new File("res/InGame/bar_ver_1.png")); break;
+							case 2: vertical_trace[row][column].set_image(new File("res/InGame/bar_ver_2.png")); break;
+							case 3: vertical_trace[row][column].set_image(new File("res/InGame/bar_ver_3.png")); break;
+							case 4: vertical_trace[row][column].set_image(new File("res/InGame/bar_ver_4.png")); break;
+						}
+						vertical_trace[row][column].set_active(true);
+						vertical_trace[row][column].set_coordinates((119 + (45 * row)), (116 +(45 * column)));
+						
+						// Updating the block.
+						if(row > 0 && row < 16 && column >= 0 && column < 12)
+						{
+							if (block[row][column].set_trace(3, current_player))
+							{
+								player[current_player - 1].set_score(1);
+								block_closed |= true;
+							}
+							
+							if (block[row - 1][column].set_trace(4, current_player))
+							{
+								player[current_player - 1].set_score(1);
+								block_closed |= true;
+							}
+						}
+						else if(row == 0 && row < 16 && column < 12)
+						{
+							if (block[row][column].set_trace(3, current_player))
+							{
+								player[current_player - 1].set_score(1);
+								block_closed = true;
+							}
+						}
+						else if (row == 0 && column == 0)
+						{
+							if (block[row][column].set_trace(3, current_player))
+							{
+								player[current_player - 1].set_score(1);
+								block_closed = true;
+							}
+						}
+						else if (row == 16 && column < 12)
+						{
+							if (block[row - 1][column].set_trace(4, current_player))
+							{
+								player[current_player - 1].set_score(1);
+								block_closed = true;
+							}
+						}
+					}
+					else return 0;
+			}
+			
+				// After the click, change the player turn.
+				current_selection.set_active(false);
+				
+				if (!last_selection.get_active()) last_selection.set_active(true);
+				last_selection.set_coordinates(row, column, orientation);
+				
+				if (block_closed == true) current_player--;
+							
+				current_player = ((current_player) % 4) + 1;
+				current_selection.set_state(current_player);
+			}
+		}
+		else // Otherwise, if the cursor is outside the game board.
+		{
+			current_selection.set_active(false);
+		}
+		
 		return 0;
 	}
 	
@@ -400,6 +471,14 @@ public class GameBoard
 		
 		// Render the points related to the current selection.
 		if (current_selection.get_active()) current_selection.render(graphics);
+		
+		// Render the warning window if necessary.
+		if (warning_menu.get_visible())
+		{
+			warning_menu.render(graphics);
+			continue_button.render(graphics);
+			cancel.render(graphics);
+		}
 		
 		return;
 	}
