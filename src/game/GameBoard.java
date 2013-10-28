@@ -22,6 +22,16 @@ public class GameBoard
 	private BufferedImage dots;
 	private BufferedImage grid[];
 	
+	// Number of players selection
+	private Button player_selection_background;
+	private Button _2players;
+	private Button _3players;
+	private Button _4players;
+	
+	// Player image
+	private Button player_3;
+	private Button player_4;
+	
 	// Warning images
 	private Button warning_menu;
 	
@@ -46,6 +56,7 @@ public class GameBoard
 	
 	//Players
 	private Player player[];
+	private int number_of_players;
 	
 	// Defines who is the current player to play.
 	private int current_player;
@@ -68,6 +79,18 @@ public class GameBoard
 		grid[2] = ImageIO.read(new File("res/InGame/grid_p2.png"));
 		grid[3] = ImageIO.read(new File("res/InGame/grid_p3.png"));
 		grid[4] = ImageIO.read(new File("res/InGame/grid_p4.png"));
+		
+		player_selection_background = new Button(offsetX, offsetY, 960, 720, false); 
+		player_selection_background.set_image(new File("res/InGame/player_number.png"));
+		
+		_2players = new Button((25 +offsetX), (600 + offsetY), 283, 108, false);
+		_2players.set_image(new File("res/InGame/2p.png"), new File("res/InGame/2ps.png"));
+		
+		_3players = new Button((342 + offsetX), (600 + offsetY), 283, 108, false);
+		_3players.set_image(new File("res/InGame/3p.png"), new File("res/InGame/3ps.png"));
+		
+		_4players = new Button((655 + offsetX), (600 + offsetY), 283, 108, false);
+		_4players.set_image(new File("res/InGame/4p.png"), new File("res/InGame/4ps.png"));
 		
 		menu = new Button(offsetX, offsetY, 150, 30, true);
 		menu.set_image(new File("res/InGame/menu.png"), new File("res/InGame/menu_pressed.png"));
@@ -103,8 +126,13 @@ public class GameBoard
 		hori_coll_detector = new Rectangle[16][13];
 		for (int R = 0; R < 16; R++) { for (int C = 0; C < 13; C++) hori_coll_detector[R][C] = new Rectangle((115 +16 + (45 * R)), (110 + (45 * C)), 30, 17); }
 		
-		player = new Player[4];
-		for (int player_number = 0; player_number < 4; player_number++) player[player_number] = new Player(player_number);
+		number_of_players = 0;
+		
+		player_3 = new Button(offsetX, (95 + offsetY), 0, 0, false);
+		player_3.set_image(new File("res/InGame/P3.png"));
+		
+		player_4 = new Button((889 + offsetX), (100 + offsetY), 0, 0, false);
+		player_4.set_image(new File("res/InGame/P4.png"));
 		
 		last_selection = new Point(0);
 		current_selection = new Point(1);
@@ -133,25 +161,23 @@ public class GameBoard
 	 */
 	public int update (int cursorX, int cursorY, boolean clicked) throws IOException
 	{
-		// Game over situation. *Need to fix draw situation*
-		if ((player[0].get_score() + player[1].get_score() + player[2].get_score() + player[3].get_score()) == 192)
+		// Number of player selection screen, skip one frame and then start the game.
+		if (number_of_players == 0 ) 
 		{
-			int winner = 1;
-			for (int i = 1; i < 4; i++)
-			{
-				if (player[i].get_score() > player[i -1].get_score()) winner = (i + 1);
-			}
-			System.out.println("Game Over!\n Player " + winner + " won.");
-			
-		}
-		
-		// Number of player selection screen, after that start the game.
-		if (current_player == 0 ) 
-		{
+			set_number_players(cursorX, cursorY, clicked);
 			current_player = 1;
 			return 0;
 		}
 		
+		/* Game over situation. *Need to fix draw situation*
+		if ((player[0].get_score() + player[1].get_score() + player[2].get_score() + player[3].get_score()) == 192)
+		{
+			int winner = 1;
+			for (int i = 1; i < 4; i++) { if (player[i].get_score() > player[i -1].get_score()) winner = (i + 1); }
+			System.out.println("Game Over!\n Player " + winner + " won.");	
+		}
+		*/
+				
 		// Searching for mouse position when a warning is active
 		if (warning_menu.get_visible()) return check_warnings(cursorX, cursorY, clicked);
 		
@@ -159,10 +185,76 @@ public class GameBoard
 		if (cursorX >= 105 && cursorX <= 860 && cursorY >= 105 && cursorY <= 675) return check_inside(cursorX, cursorY, clicked);
 		
 		// Searching for mouse position outside the game board.
-		if (cursorY <= 100) return check_outside(cursorX, cursorY, clicked);
+		else return check_outside(cursorX, cursorY, clicked);
+	}
+	
+	/*
+	 * Select the number of players and instantiates the players variable
+	 */
+	private void set_number_players (int cursorX, int cursorY, boolean clicked) throws IOException
+	{
+		player_selection_background.set_visible(true);
 		
-		// Returning 0 means that it has to keep updating.
-		return 0;
+		if (cursorX >= _2players.start_x && cursorX < _2players.end_x && cursorY >= _2players.start_y && cursorY < _2players.end_y)
+		{
+			_2players.set_state(1);
+			_3players.set_state(0);
+			_4players.set_state(0);
+			
+			if (clicked)
+			{
+				number_of_players = 2;
+				player = new Player[number_of_players];
+				for (int player_number = 0; player_number < number_of_players; player_number++) player[player_number] = new Player(player_number);
+				player_selection_background.set_visible(false);
+				
+				return;
+			}
+		}
+		else if (cursorX >= _3players.start_x && cursorX < _3players.end_x && cursorY >= _3players.start_y && cursorY < _3players.end_y)
+		{
+			_2players.set_state(0);
+			_3players.set_state(1);
+			_4players.set_state(0);
+			
+			if (clicked)
+			{
+				player_3.set_visible(true);
+				
+				number_of_players = 3;
+				player = new Player[number_of_players];
+				for (int player_number = 0; player_number < number_of_players; player_number++) player[player_number] = new Player(player_number);
+				player_selection_background.set_visible(false);
+				
+				return;
+			}
+		}
+		else if (cursorX >= _4players.start_x && cursorX < _4players.end_x && cursorY >= _4players.start_y && cursorY < _4players.end_y)
+		{
+			_2players.set_state(0);
+			_3players.set_state(0);
+			_4players.set_state(1);
+			
+			if (clicked)
+			{
+				player_3.set_visible(true);
+				player_4.set_visible(true);
+				
+				number_of_players = 4;
+				player = new Player[number_of_players];
+				for (int player_number = 0; player_number < number_of_players; player_number++) player[player_number] = new Player(player_number);
+				player_selection_background.set_visible(false);
+				
+				return;
+			}
+		}
+		else
+		{
+			_2players.set_state(0);
+			_3players.set_state(0);
+			_4players.set_state(0);
+			return;
+		}
 	}
 	
 	/*
@@ -426,7 +518,7 @@ public class GameBoard
 				
 				if (block_closed == true) current_player--;
 							
-				current_player = ((current_player) % 4) + 1;
+				current_player = ((current_player) % number_of_players) + 1;
 				current_selection.set_state(current_player);
 			}
 		}
@@ -447,7 +539,9 @@ public class GameBoard
 		graphics.drawImage(background, offsetX, offsetY, null);
 		
 		// Render the players.
-		for (int i = 0; i < 4; i++) player[i].render(graphics);
+		if (player_3.get_visible()) player_3.render(graphics);
+		if (player_4.get_visible()) player_4.render(graphics);
+		for (int i = 0; i < number_of_players; i++) player[i].render(graphics);
 		
 		//Render the blocks.
 		for (int R = 0; R < 16; R++) for (int C = 0; C < 12; C++) block[R][C].render(graphics);
@@ -478,6 +572,15 @@ public class GameBoard
 			warning_menu.render(graphics);
 			continue_button.render(graphics);
 			cancel.render(graphics);
+		}
+		
+		// Render number of players selection screen if necessary
+		if (player_selection_background.get_visible()) 
+		{
+			player_selection_background.render(graphics);
+			_2players.render(graphics);
+			_3players.render(graphics);
+			_4players.render(graphics);
 		}
 		
 		return;
