@@ -1,4 +1,4 @@
-package game;
+package components;
 
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
@@ -14,13 +14,9 @@ public class Block {
 	private int traces;
 	private int x;
 	private int y;
-	@SuppressWarnings("unused")
 	private boolean up;
-	@SuppressWarnings("unused")
 	private boolean down;
-	@SuppressWarnings("unused")
 	private boolean left;
-	@SuppressWarnings("unused")
 	private boolean right;
 	
 	/*
@@ -72,6 +68,16 @@ public class Block {
 		
 		return block_closed;
 	}
+	
+	public int get_traces ()
+	{
+		return traces;
+	}
+	
+	public boolean get_up () { return up; }
+	public boolean get_down () { return down; }
+	public boolean get_left () { return left; }
+	public boolean get_right () { return right; }
 	
 	/*
 	 * This function will render all images within the main menu respecting printing order.

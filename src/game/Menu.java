@@ -7,6 +7,8 @@ import java.io.IOException;
 
 import javax.imageio.ImageIO;
 
+import components.Button;
+
 public class Menu
 {
 	// Variable that control the time the menu shall be the active screen.
@@ -74,12 +76,12 @@ public class Menu
 	{
 		
 		// Searching for mouse position.
-		if((cursorX >= start.start_x) && (cursorX <= start.end_x) && (cursorY >= start.start_y) && (cursorY <= start.end_y))
+		if(start.contem(cursorX, cursorY))
 		{ 
-			start.set_state(1);
-			multiplayer.set_state(0);
-			records.set_state(0);
-			settings.set_state(0);
+			start.setState(1);
+			multiplayer.setState(0);
+			records.setState(0);
+			settings.setState(0);
 			
 			if (clicked == true)
 			{
@@ -87,12 +89,12 @@ public class Menu
 				return 1;
 			}
 		}
-		else if((cursorX >= multiplayer.start_x) && (cursorX <= multiplayer.end_x) && (cursorY >= multiplayer.start_y) && (cursorY <= multiplayer.end_y))
+		else if(multiplayer.contem(cursorX, cursorY))
 		{
-			start.set_state(0);
-			multiplayer.set_state(1);
-			records.set_state(0);
-			settings.set_state(0);
+			start.setState(0);
+			multiplayer.setState(1);
+			records.setState(0);
+			settings.setState(0);
 			
 			if (clicked == true)
 			{
@@ -100,12 +102,12 @@ public class Menu
 				return 2;
 			}
 		}
-		else if((cursorX >= records.start_x) && (cursorX <= records.end_x) && (cursorY >= records.start_y) && (cursorY <= records.end_y))
+		else if(records.contem(cursorX, cursorY))
 		{
-			start.set_state(0);
-			multiplayer.set_state(0);
-			records.set_state(1);
-			settings.set_state(0);
+			start.setState(0);
+			multiplayer.setState(0);
+			records.setState(1);
+			settings.setState(0);
 			
 			if (clicked == true)
 			{
@@ -113,12 +115,12 @@ public class Menu
 				return 3;
 			}
 		}
-		else if((cursorX >= settings.start_x) && (cursorX <= settings.end_x) && (cursorY >= settings.start_y) && (cursorY <= settings.end_y))
+		else if(settings.contem(cursorX, cursorY))
 		{
-			start.set_state(0);
-			multiplayer.set_state(0);
-			records.set_state(0);
-			settings.set_state(1);
+			start.setState(0);
+			multiplayer.setState(0);
+			records.setState(0);
+			settings.setState(1);
 			
 			if (clicked == true)
 			{
@@ -128,10 +130,10 @@ public class Menu
 		}
 		else
 		{
-			start.set_state(0);
-			multiplayer.set_state(0);
-			records.set_state(0);
-			settings.set_state(0);
+			start.setState(0);
+			multiplayer.setState(0);
+			records.setState(0);
+			settings.setState(0);
 		}
 		
 		return 0;

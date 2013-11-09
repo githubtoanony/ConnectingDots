@@ -14,160 +14,167 @@ import java.awt.event.MouseListener;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-
 import javax.imageio.ImageIO;
 
+/**
+ *   Esta é a classe principal do jogo. Suas atribuições principais são à inicialização
+ * do programa pela classe main, e a execução do loop de lógica e loop de renderização.
+ * 
+ * @author      <a href="mailto:marceloatg@outlook.com"> Marcelo A. T. Gomes</a>
+ * @version     1.0.0               
+ * @since       2013-10-23  
+ *
+ */
 public class Game extends Frame implements Runnable, MouseListener
 {
-	// Definition
-	public final int offsetY = 30;
-	public final int offsetX = 3;
-	
-	// Definition
-	public final int WIDTH = (960 + (2 * offsetX));
-	
-	// Definition
-	public final int HEIGHT = (720 + offsetY + offsetX);
-	
-	// Definition
-	public boolean running = false;
-	
-	// Used during deserialization to verify.
 	private static final long serialVersionUID = 1L;
 	
-	// Definition   ?? Not in use
-	//private JFrame frame;
+	/** Ofsset horizontal da janela do programa. */
+	public static final int offsetX = 3;
 	
-	// Definition
+	/** Ofsset vertical da janela do programa. */
+	public static final int offsetY = 30;
+	
+	/** Largura da janela do programa. */
+	public static final int WIDTH = (960 + (2 * offsetX));
+	
+	/** Altura da janela do programa. */
+	public static final int HEIGHT = (720 + offsetY + offsetX);
+	
+	/** Estado de execução do programa. */
+	public boolean running = false;
+	
+	/** Buffer onde os elementos gráficos são preparados para renderização. */
 	private BufferedImage buffer;
 	
-	// Definition
+	/** Elemento gráfico onde o buffer será renderizado. */
 	private Graphics2D graphics;
 	
-	// Definition
+	/** Elemento gráfico auxiliar. */
 	private Graphics2D g2d;
 	
-	// Game's icon image
+	/** Imagem contendo ícone do programa. */
 	private Image icon;
 	
-	// Cursor coordinates
+	/** Armazena posição horizontal do cursor. */
 	private int cursorX;
+	
+	/** Armazena posição vertical do cursor. */
 	private int cursorY;
 	
-	// Window coordinates
+	/** Armazena posição horizontal da janela do programa. */
 	private int windowX;
+	
+	/** Armazena posição vertical da janela do programa. */
 	private int windowY;
 	
-	// Flag that warns when the mouse was clicked.
+	/** Flag que simboliza o clique do mouse*/
 	private boolean clicked;
 	
-	// Counts the updates.
+	/** Armazena a quantidade de atualizações feitas. */
 	private int ticks;
 			
-	// Counts the frames.
+	/** Armazena a quantidade de frames renderizados. */
 	private int frames;
 	
-	// Main menu in game.
-	Menu menu;
+	/** Menu principal do jogo. */
+	private Menu menu;
 	
-	// Definition
-	GameBoard gameBoard;
+	/** Tabuleiro do jogo. */
+	private GameBoard gameBoard;
 	
-	/*
-	 * Class constructor
+	/**
+	 * Construtor da classe
 	 */
 	public Game() throws IOException 
 	{  
+		// Instanciando menu principal.
 		menu = new Menu(offsetX, offsetY);
 		menu.set_active(true);
 		
+		// Instanciando tabuleiro.
 		gameBoard = new GameBoard(offsetX, offsetY);
 		gameBoard.set_active(false);
 		
+		// Recuperando coordenadas da janela do programa.
 		windowX = getX();
 		windowY = getY();
 		
+		
+		// Definindo propriedades do frame do programa.
 		setTitle("Connecting Dots");
 	    setSize(WIDTH, HEIGHT);
 	    setVisible(true);
 	    setResizable(false);
 	    setLocationRelativeTo(null);
-	    
-		buffer = new BufferedImage(WIDTH, HEIGHT, BufferedImage.TYPE_INT_RGB);
-		graphics = buffer.createGraphics();
-		
 	    addWindowListener(new CloseWindow());
 	    
-	    // Load an image for the icon.
-	    icon = ImageIO.read(new File("res/General/icon.png"));
+	    // Instanciando variáveis gráficas.
+		buffer = new BufferedImage(WIDTH, HEIGHT, BufferedImage.TYPE_INT_RGB);
+		graphics = buffer.createGraphics();
 	    
-	    // Set the custom icon.
+	    // Criando ícone personalizado
+	    icon = ImageIO.read(new File("res/General/icon.png"));
 	    setIconImage(icon);
 	    
-	    // Get the default toolkit.
-	    Toolkit toolkit = Toolkit.getDefaultToolkit();  
-	    
-	    // Load an image for the cursor.
+	    // Criando cursor personalizado.
+	    Toolkit toolkit = Toolkit.getDefaultToolkit();
 	    Image cursor_image = toolkit.getImage("res/General/cursor_p1.png");
-	    
-	    // Create the hotspot for the cursor.
-	    Point hotSpot = new Point(0,0);  
-	    
-	    // Create the custom cursor.
-	    Cursor cursor = toolkit.createCustomCursor(cursor_image, hotSpot, "Pencil"); 
-	    
-	    // Set the custom cursor.
+	    Point hotSpot = new Point(0,0);
+	    Cursor cursor = toolkit.createCustomCursor(cursor_image, hotSpot, "Pencil");
 	    setCursor(cursor);   
 	    
-	    // Adding the mouse listener.
+	    // Adicionando o mouse listener.
 	    addMouseListener(this);
 	    
+	    // Inicializando a variável clicked.
 	    clicked = false;
 	}
 	
-	/*
-	 * Main function.
-	 */
-	public static void main (String[] args) throws IOException
-	{
-		Game game = new Game();
-		game.start();
-	}
-	
-	/*
-	 * Starting game method.
-	 */
+	 /**
+	  * Método de inicialização da thread.
+	  */
 	public synchronized void start()
 	{
-		// Setting running state to true.
-		running = true;
-		
-		// Creating a thread that is an instance of Runnable, running automatically the run method.
-		new Thread(this).start();
+		// Testando estado do programa.
+	 	if (running) return;
+	 	
+	 	// Definindo o estado de running como verdadeiro.
+	 	running = true;
+	 	
+	 	// Instanciando e inicializando o objeto thread.
+	 	new Thread(this).start();
+	 	
+	 	// Mensagem de controle.
+	 	System.out.println("Started.");
 	}
 	
-	/*
-	 * Stopping game method.
+	/**
+	 * Método de encerramento da thread.
 	 */
-	public synchronized void stop()
+	public synchronized void stop() throws InterruptedException
 	{
-		// Setting running state to false.
+		// Testando estado do programa.
+		if (!running) return;
+		
+		// Definindo o estado de running como falso.
 		running = false;
-		return;
+	  
+		//Mensagem de controle.
+		System.out.println("Stoped.");
 	}
 
 	/*
-	 * Definition
+	 * Método gráfico obrigatório.
 	 */
 	public void paint(Graphics g)
 	{
 		g2d = (Graphics2D) g;
-		return;
 	}
 	
 	/*
-	 * Definition
-	 */
+     * Método de execução dos loops principais do programa.
+     */
 	public void run() 
 	{
 		// Gets the current time within nano precision.
@@ -225,7 +232,7 @@ public class Game extends Frame implements Runnable, MouseListener
 	}
 	
 	/*
-	 * Definition
+	 * Método gráfico obrigatório.
 	 */
 	public void update(Graphics g)
 	{
@@ -233,10 +240,10 @@ public class Game extends Frame implements Runnable, MouseListener
 		g2d.drawImage(buffer, 0, 0, null);
 	}
 	
-	/*
-	 * This function will update the logic of the game.
-	 */
-	public void tick () throws IOException
+	/**
+     * Método de atualização da lógica do jogo.
+     */ 
+	void tick () throws IOException
 	{
 		// Updating the window's coordinates.
 		windowX = getX();
@@ -245,8 +252,6 @@ public class Game extends Frame implements Runnable, MouseListener
 		// Updating the mouse's coordinates.
 		cursorX = (MouseInfo.getPointerInfo().getLocation().x - windowX);         
 		cursorY = (MouseInfo.getPointerInfo().getLocation().y) - windowY;
-		
-		System.out.println("X: " + cursorX + " Y: " + cursorY);
 		
 		// Update menu screen if active.
 		if (menu.get_active()) 
@@ -269,8 +274,8 @@ public class Game extends Frame implements Runnable, MouseListener
 		clicked = false;
 	}
 	
-	/*
-	 * This function will print out the frames.
+	/**
+	 *  Método de renderização do jogo.
 	 */
 	public void render()
 	{	    
@@ -302,4 +307,13 @@ public class Game extends Frame implements Runnable, MouseListener
 
 	@Override
 	public void mouseReleased(MouseEvent arg0) {}
+	
+	/**
+	 * Função Main.
+	 */
+	public static void main (String[] args) throws IOException
+	{
+		Game game = new Game();
+		game.start();
+	}
 }

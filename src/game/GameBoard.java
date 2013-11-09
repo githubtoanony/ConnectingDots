@@ -5,8 +5,15 @@ import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-
+import java.util.LinkedList;
+import java.util.Vector;
 import javax.imageio.ImageIO;
+import components.Block;
+import components.Block_Storage;
+import components.Button;
+import components.Player;
+import components.Point;
+import components.Trace;
 
 public class GameBoard 
 {
@@ -43,6 +50,9 @@ public class GameBoard
 	
 	// Blocks in the game
 	private Block block[][];
+	
+	// List of block storages
+	private Vector<LinkedList <Block_Storage>> traces_list;
 	
 	// Definition.
 	private Rectangle vert_coll_detector[][];
@@ -107,6 +117,18 @@ public class GameBoard
 		cancel = new Button((510 + offsetX), (385 + offsetY), 120, 25, true);
 		cancel.set_image(new File("res/InGame/cancel_button.png"), new File("res/InGame/cancel_button_pressed.png"));
 		
+		traces_list = new Vector<LinkedList<Block_Storage>>();
+		for (int i = 0; i < 5; i++) traces_list.add(i, new LinkedList<Block_Storage>());
+		for (int i = 0; i < 192; i++) traces_list.get(0).add(new Block_Storage());
+		
+		int aux = 0;
+		for (int j = 0; j < 16; j++) 
+			for (int k = 0; k < 12; k++)
+			{
+				traces_list.get(0).set(aux, new Block_Storage(j, k));
+				aux++;
+			}
+
 		block = new Block[16][12];
 		for (int i = 0; i < 16; i++) for (int j = 0; j < 12; j++) 
 		{
@@ -115,16 +137,16 @@ public class GameBoard
 		}
 		
 		vertical_trace = new Trace[17][12];
-		for (int R = 0; R < 17; R++) for (int C = 0; C < 12; C++) vertical_trace[R][C] = new Trace(); 
+		for (int R = 0; R < 17; R++) for (int C = 0; C < 12; C++) vertical_trace[R][C] = new Trace();
 		
 		vert_coll_detector = new Rectangle[17][12];
-		for (int R = 0; R < 17; R++) { for (int C = 0; C < 12; C++) vert_coll_detector[R][C] = new Rectangle((115 + (45 * R)), (110 + 16 +(45 * C)), 17, 30); }
+		for (int R = 0; R < 17; R++) { for (int C = 0; C < 12; C++) vert_coll_detector[R][C] = new Rectangle((115 + (45 * R)), (126 + (45 * C)), 17, 30); }
 		
 		horizontal_trace = new Trace[16][13];
 		for (int R = 0; R < 16; R++) for (int C = 0; C < 13; C++) horizontal_trace[R][C] = new Trace();
 		
 		hori_coll_detector = new Rectangle[16][13];
-		for (int R = 0; R < 16; R++) { for (int C = 0; C < 13; C++) hori_coll_detector[R][C] = new Rectangle((115 +16 + (45 * R)), (110 + (45 * C)), 30, 17); }
+		for (int R = 0; R < 16; R++) { for (int C = 0; C < 13; C++) hori_coll_detector[R][C] = new Rectangle((131 + (45 * R)), (110 + (45 * C)), 30, 17); }
 		
 		number_of_players = 0;
 		
@@ -162,24 +184,13 @@ public class GameBoard
 	public int update (int cursorX, int cursorY, boolean clicked) throws IOException
 	{
 		// Number of player selection screen, skip one frame and then start the game.
-		if (number_of_players == 0 ) 
-		{
-			set_number_players(cursorX, cursorY, clicked);
-			current_player = 1;
-			return 0;
-		}
-		
-		/* Game over situation. *Need to fix draw situation*
-		if ((player[0].get_score() + player[1].get_score() + player[2].get_score() + player[3].get_score()) == 192)
-		{
-			int winner = 1;
-			for (int i = 1; i < 4; i++) { if (player[i].get_score() > player[i -1].get_score()) winner = (i + 1); }
-			System.out.println("Game Over!\n Player " + winner + " won.");	
-		}
-		*/
+		if (number_of_players == 0 ) return set_number_players(cursorX, cursorY, clicked);
+
+		// If the player is not human execute the AI
+		if (!player[current_player - 1].get_human_player()) return AI_move();
 				
 		// Searching for mouse position when a warning is active
-		if (warning_menu.get_visible()) return check_warnings(cursorX, cursorY, clicked);
+		if (warning_menu.isVisible()) return check_warnings(cursorX, cursorY, clicked);
 		
 		// Searching for mouse position inside the game board.
 		if (cursorX >= 105 && cursorX <= 860 && cursorY >= 105 && cursorY <= 675) return check_inside(cursorX, cursorY, clicked);
@@ -191,70 +202,76 @@ public class GameBoard
 	/*
 	 * Select the number of players and instantiates the players variable
 	 */
-	private void set_number_players (int cursorX, int cursorY, boolean clicked) throws IOException
+	private int set_number_players (int cursorX, int cursorY, boolean clicked) throws IOException
 	{
-		player_selection_background.set_visible(true);
+		current_player = 1;
+		player_selection_background.setVisible(true);
 		
-		if (cursorX >= _2players.start_x && cursorX < _2players.end_x && cursorY >= _2players.start_y && cursorY < _2players.end_y)
+		if (_2players.contem(cursorX, cursorY))
 		{
-			_2players.set_state(1);
-			_3players.set_state(0);
-			_4players.set_state(0);
+			_2players.setState(1);
+			_3players.setState(0);
+			_4players.setState(0);
 			
 			if (clicked)
 			{
 				number_of_players = 2;
 				player = new Player[number_of_players];
 				for (int player_number = 0; player_number < number_of_players; player_number++) player[player_number] = new Player(player_number);
-				player_selection_background.set_visible(false);
+				for (int aux = 1; aux < number_of_players; aux++) player[aux].set_human_player(false);
+				player_selection_background.setVisible(false);
 				
-				return;
+				return 0;
 			}
 		}
-		else if (cursorX >= _3players.start_x && cursorX < _3players.end_x && cursorY >= _3players.start_y && cursorY < _3players.end_y)
+		else if (_3players.contem(cursorX, cursorY))
 		{
-			_2players.set_state(0);
-			_3players.set_state(1);
-			_4players.set_state(0);
+			_2players.setState(0);
+			_3players.setState(1);
+			_4players.setState(0);
 			
 			if (clicked)
 			{
-				player_3.set_visible(true);
+				player_3.setVisible(true);
 				
 				number_of_players = 3;
 				player = new Player[number_of_players];
 				for (int player_number = 0; player_number < number_of_players; player_number++) player[player_number] = new Player(player_number);
-				player_selection_background.set_visible(false);
+				for (int aux = 1; aux < number_of_players; aux++) player[aux].set_human_player(false);
+				player_selection_background.setVisible(false);
 				
-				return;
+				return 0;
 			}
 		}
-		else if (cursorX >= _4players.start_x && cursorX < _4players.end_x && cursorY >= _4players.start_y && cursorY < _4players.end_y)
+		else if (_4players.contem(cursorX, cursorY))
 		{
-			_2players.set_state(0);
-			_3players.set_state(0);
-			_4players.set_state(1);
+			_2players.setState(0);
+			_3players.setState(0);
+			_4players.setState(1);
 			
 			if (clicked)
 			{
-				player_3.set_visible(true);
-				player_4.set_visible(true);
+				player_3.setVisible(true);
+				player_4.setVisible(true);
 				
 				number_of_players = 4;
 				player = new Player[number_of_players];
 				for (int player_number = 0; player_number < number_of_players; player_number++) player[player_number] = new Player(player_number);
-				player_selection_background.set_visible(false);
+				for (int aux = 0; aux < number_of_players; aux++) player[aux].set_human_player(false);
+				player_selection_background.setVisible(false);
 				
-				return;
+				return 0;
 			}
 		}
 		else
 		{
-			_2players.set_state(0);
-			_3players.set_state(0);
-			_4players.set_state(0);
-			return;
+			_2players.setState(0);
+			_3players.setState(0);
+			_4players.setState(0);
+			return 0;
 		}
+		
+		return 0;
 	}
 	
 	/*
@@ -263,10 +280,10 @@ public class GameBoard
 	private int check_warnings(int cursorX, int cursorY, boolean clicked)
 	{
 		// If the cursor is hovering continue button
-		if (cursorX >= continue_button.start_x && cursorX < continue_button.end_x && cursorY >= continue_button.start_y && cursorY < continue_button.end_y)
+		if (continue_button.contem(cursorX, cursorY))
 		{
-			continue_button.set_state(1);
-			cancel.set_state(0);
+			continue_button.setState(1);
+			cancel.setState(0);
 						
 			if (clicked == true)
 			{
@@ -274,20 +291,20 @@ public class GameBoard
 				return 1;
 			}
 		}
-		else if (cursorX >= cancel.start_x && cursorX < cancel.end_x && cursorY >= cancel.start_y && cursorY < cancel.end_y)
+		else if (cancel.contem(cursorX, cursorY))
 		{
-			continue_button.set_state(0);
-			cancel.set_state(1);
+			continue_button.setState(0);
+			cancel.setState(1);
 						
 			if (clicked == true)
 			{
-				warning_menu.set_visible(false);
+				warning_menu.setVisible(false);
 			}
 		}
 		else
 		{
-			continue_button.set_state(0);
-			cancel.set_state(0);
+			continue_button.setState(0);
+			cancel.setState(0);
 		}
 					
 		return 0;
@@ -301,23 +318,23 @@ public class GameBoard
 		current_selection.set_active(false);
 		
 		// If mouse hovers on menu button.
-		if((cursorX >= menu.start_x) && (cursorX <= menu.end_x) && (cursorY >= menu.start_y) && (cursorY <= menu.end_y)) 
+		if(menu.contem(cursorX, cursorY)) 
 		{
-			menu.set_state(1);
-			options.set_state(0);
+			menu.setState(1);
+			options.setState(0);
 					
 			if (clicked == true)
 			{
-				warning_menu.set_visible(true);
+				warning_menu.setVisible(true);
 				//this.active = false;
 				//return 1;
 			}
 		}
 		// If mouse hovers on options button.
-		else if((cursorX >= options.start_x) && (cursorX <= options.end_x) && (cursorY >= options.start_y) && (cursorY <= options.end_y)) 
+		else if(options.contem(cursorX, cursorY)) 
 		{
-			options.set_state(1);
-			menu.set_state(0);
+			options.setState(1);
+			menu.setState(0);
 					
 			if (clicked == true)
 			{
@@ -326,8 +343,8 @@ public class GameBoard
 		}
 		else
 		{
-			menu.set_state(0);
-			options.set_state(0);
+			menu.setState(0);
+			options.setState(0);
 		}
 		
 		return 0;
@@ -411,7 +428,7 @@ public class GameBoard
 						
 						// Updating the block.
 						if(row >= 0 && row < 16 && column > 0 && column < 12)
-						{
+						{							
 							if (block[row][column].set_trace(2, current_player))
 							{
 								player[current_player - 1].set_score(1);
@@ -425,7 +442,7 @@ public class GameBoard
 							}
 						}
 						else if(row < 16 && column == 0 && column < 12)
-						{
+						{							
 							if (block[row][column].set_trace(2, current_player))
 							{
 								player[current_player - 1].set_score(1);
@@ -433,7 +450,7 @@ public class GameBoard
 							}
 						}
 						else if (row == 0 && column == 0)
-						{
+						{							
 							if (block[row][column].set_trace(2, current_player))
 							{
 								player[current_player - 1].set_score(1);
@@ -529,6 +546,197 @@ public class GameBoard
 		
 		return 0;
 	}
+
+	/*
+	 * Movement of artificial intelligence 
+	 */
+	private int AI_move () throws IOException
+	{
+		int row;
+		int column;
+		int orientation = -1;
+		boolean block_closed = false;
+		Block_Storage storage = new Block_Storage();
+		
+		// Updating the lists
+		for (int alpha = 3; alpha >= 0; alpha--)
+		{
+			if (!traces_list.get(alpha).isEmpty()) 
+			{
+				int size = traces_list.get(alpha).size();
+				for (int i = 0; i < size; i++)
+				{
+					storage = traces_list.get(alpha).get(i);
+					row = storage.row;
+					column = storage.collum;
+					
+					if (block[row][column].get_traces() == (alpha + 1)) 
+					{
+						traces_list.get(alpha).remove(storage);
+						traces_list.get(alpha + 1).add(storage);
+						i--;
+						size--;
+					}
+				}
+			}
+		}
+	
+		// Choosing the block to mark
+		if (!traces_list.get(3).isEmpty()) 
+		{
+			storage = traces_list.get(3).get(0);
+			row = storage.row;
+			column = storage.collum;
+		}
+		else if (!traces_list.get(0).isEmpty())
+		{
+			storage = traces_list.get(0).get(0);
+			row = storage.row;
+			column = storage.collum;
+		}
+		else if (!traces_list.get(1).isEmpty())
+		{
+			storage = traces_list.get(1).get(0);
+			row = storage.row;
+			column = storage.collum;
+		}
+		else
+		{
+			storage = traces_list.get(2).get(0);
+			row = storage.row;
+			column = storage.collum;
+		}
+		
+		if (!block[row][column].get_down()) 
+		{
+			if (block[row][column].set_trace(1, current_player))
+			{
+				orientation = 0;
+				player[current_player - 1].set_score(1);
+				block_closed |= true;
+			}
+			
+			column++;
+			
+			if (column < 12)
+			{
+				if (block[row][column].set_trace(2, current_player))
+				{
+					orientation = 0;
+					player[current_player - 1].set_score(1);
+					block_closed |= true;
+				}
+			}
+		}
+		else if (!block[row][column].get_up()) 
+		{
+			if (block[row][column].set_trace(2, current_player))
+			{
+				orientation = 0;
+				player[current_player - 1].set_score(1);
+				block_closed |= true;
+			}
+			
+			if (column > 0)
+			{
+				if (block[row][column - 1].set_trace(1, current_player))
+				{
+					orientation = 0;
+					player[current_player - 1].set_score(1);
+					block_closed |= true;
+				}
+			}
+		}
+		else if (!block[row][column].get_left()) 
+		{
+			System.out.println("Passed.");
+			if (block[row][column].set_trace(3, current_player))
+			{
+				orientation = 1;
+				player[current_player - 1].set_score(1);
+				block_closed |= true;
+			}
+			
+			if (row > 0)
+			{
+				if (block[row - 1][column].set_trace(4, current_player))
+				{
+					orientation = 1;
+					player[current_player - 1].set_score(1);
+					block_closed |= true;
+				}
+			}
+		}
+		else if (!block[row][column].get_right()) 
+		{
+			if (block[row][column].set_trace(4, current_player))
+			{
+				orientation = 1;
+				player[current_player - 1].set_score(1);
+				block_closed |= true;
+			}
+			
+			row++;
+
+			if (row < 16)
+			{
+				if (block[row][column].set_trace(3, current_player))
+				{
+					orientation = 1;
+					player[current_player - 1].set_score(1);
+					block_closed |= true;
+				}
+			}
+		}
+		
+		// Visual stuff
+		if (orientation == 0)
+		{
+			if (row == 16) row = 15;
+			
+			horizontal_trace[row][column].set_marked(true);
+			switch (current_player)
+			{
+				case 1: horizontal_trace[row][column].set_image(new File("res/InGame/bar_hor_1.png")); break;
+				case 2: horizontal_trace[row][column].set_image(new File("res/InGame/bar_hor_2.png")); break;
+				case 3: horizontal_trace[row][column].set_image(new File("res/InGame/bar_hor_3.png")); break;
+				case 4: horizontal_trace[row][column].set_image(new File("res/InGame/bar_hor_4.png")); break;
+			}
+			horizontal_trace[row][column].set_active(true);
+			horizontal_trace[row][column].set_coordinates((119 + (45 * row)), (114 + (45 * column)));
+			
+		}
+		else
+		{	
+			if (column == 12) column = 11;
+			
+			vertical_trace[row][column].set_marked(true);
+			
+			switch (current_player)
+			{
+				case 1: vertical_trace[row][column].set_image(new File("res/InGame/bar_ver_1.png")); break;
+				case 2: vertical_trace[row][column].set_image(new File("res/InGame/bar_ver_2.png")); break;
+				case 3: vertical_trace[row][column].set_image(new File("res/InGame/bar_ver_3.png")); break;
+				case 4: vertical_trace[row][column].set_image(new File("res/InGame/bar_ver_4.png")); break;
+			}
+			vertical_trace[row][column].set_active(true);
+			vertical_trace[row][column].set_coordinates((119 + (45 * row)), (116 +(45 * column)));
+		}
+		
+		if (!last_selection.get_active()) last_selection.set_active(true);
+		last_selection.set_coordinates(row, column, orientation);
+		
+		if (block_closed == true) current_player--;
+					
+		System.out.println("I choose block[" + row + "][" + column + "]");
+			
+		current_player = ((current_player) % number_of_players) + 1;
+		current_selection.set_state(current_player);
+		
+		System.out.println("0: " + traces_list.get(0).size() + " 1: "+ traces_list.get(1).size() + " 2: "+ traces_list.get(2).size() + " 3: " + traces_list.get(3).size() + " 4: " + traces_list.get(4).size());
+		
+		return 0;
+	}
 	
 	/*
 	 * This function will render all images within the main menu respecting printing order.
@@ -539,8 +747,8 @@ public class GameBoard
 		graphics.drawImage(background, offsetX, offsetY, null);
 		
 		// Render the players.
-		if (player_3.get_visible()) player_3.render(graphics);
-		if (player_4.get_visible()) player_4.render(graphics);
+		if (player_3.isVisible()) player_3.render(graphics);
+		if (player_4.isVisible()) player_4.render(graphics);
 		for (int i = 0; i < number_of_players; i++) player[i].render(graphics);
 		
 		//Render the blocks.
@@ -567,7 +775,7 @@ public class GameBoard
 		if (current_selection.get_active()) current_selection.render(graphics);
 		
 		// Render the warning window if necessary.
-		if (warning_menu.get_visible())
+		if (warning_menu.isVisible())
 		{
 			warning_menu.render(graphics);
 			continue_button.render(graphics);
@@ -575,7 +783,7 @@ public class GameBoard
 		}
 		
 		// Render number of players selection screen if necessary
-		if (player_selection_background.get_visible()) 
+		if (player_selection_background.isVisible()) 
 		{
 			player_selection_background.render(graphics);
 			_2players.render(graphics);

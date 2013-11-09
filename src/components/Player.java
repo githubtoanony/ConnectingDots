@@ -1,4 +1,4 @@
-package game;
+package components;
 
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
@@ -7,7 +7,8 @@ import java.io.IOException;
 import javax.imageio.ImageIO;
 
 public class Player {
-
+	
+	private boolean human_player;
 	private BufferedImage score_ten_image;
 	private BufferedImage score_unit_image;
 	private int number;
@@ -23,6 +24,7 @@ public class Player {
 	public Player (int player_number) throws IOException
 	{
 		number = player_number;
+		human_player = true;
 		this.set_score(0);
 	}
 
@@ -109,6 +111,17 @@ public class Player {
 	public int get_score ()
 	{
 		return score;
+	}
+	
+	public void set_human_player (boolean type)
+	{
+		human_player = type;
+		return;
+	}
+	
+	public boolean get_human_player ()
+	{
+		return human_player;
 	}
 	
 	/*
