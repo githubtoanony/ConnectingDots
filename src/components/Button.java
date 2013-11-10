@@ -11,7 +11,10 @@ import javax.imageio.ImageIO;
  * @author Marcelo A. T. Gomes
  *
  */
-public class Button {
+public class Button extends Rectangle
+{
+
+	private static final long serialVersionUID = 3L;
 
 	/** Vetor para armazenamento das imagens do botão*/
 	private BufferedImage imagem[];
@@ -21,21 +24,6 @@ public class Button {
 	
 	/** Visibilidade de botão */
 	private boolean visibilidade;
-	
-	/** Coordenada horizontal */ 
-	private int x;
-	
-	/** Coordenada vertical */
-	private int y;
-	
-	/** Largura da imagem */
-	private int width;
-	
-	/** Altura da imagem */
-	private int height;
-	
-	/** Retângulo usado para o cálculo de colisão */
-	private Rectangle retangulo;
 	
 	/**
 	 * Construtor da classe.
@@ -52,8 +40,6 @@ public class Button {
 		this.width = width;
 		this.height = height;
 		this.visibilidade = visibilidade;
-		
-		retangulo = new Rectangle(x, y, width, height);
 	}
 	
 	/**
@@ -109,38 +95,6 @@ public class Button {
 	}
 	
 	/**
-	 * @return the x
-	 */
-	public int getX() 
-	{
-		return x;
-	}
-	
-	/**
-	 * @param x the x to set
-	 */
-	public void setX(int x) 
-	{
-		this.x = x;
-	}
-
-	/**
-	 * @return the y
-	 */
-	public int getY() 
-	{
-		return y;
-	}
-	
-	/**
-	 * @param y the y to set
-	 */
-	public void setY(int y) 
-	{
-		this.y = y;
-	}
-	
-	/**
 	 * Este método define as coordenadas x e y do botão.
 	 * @param x the x to set
 	 * @param y the y to set
@@ -150,38 +104,6 @@ public class Button {
 		this.x = x;
 		this.y = y;
 	}
-	
-	/**
-	 * @return the width
-	 */
-	public int getWidth()
-	{
-		return width;
-	}
-
-	/**
-	 * @param width the width to set
-	 */
-	public void setWidth(int width)
-	{
-		this.width = width;
-	}
-
-	/**
-	 * @return the height
-	 */
-	public int getHeight() 
-	{
-		return height;
-	}
-
-	/**
-	 * @param height the height to set
-	 */
-	public void setHeight(int height) 
-	{
-		this.height = height;
-	}
 
 	/**
 	 * Este método renderiza a imagem do botão definida pelo seu estado no buffer.
@@ -190,17 +112,5 @@ public class Button {
 	public void render(Graphics graphics)
 	{
 		graphics.drawImage(imagem[estado], x, y, null);
-		return;
-	}
-	
-	/**
-	 * Este método retorna veradadeiro caso o ponto indicado esteja contido dentro do
-	 * botão e falso caso contrário.
-	 * @param x é a coordenada horizontal do ponto a ser verificado
-	 * @param y é a coordenada vertical do ponto a ser verificado
-	 */
-	public boolean contem(int cursorX, int cursorY)
-	{
-		return retangulo.contains(cursorX, cursorY);
 	}
 }

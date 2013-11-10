@@ -22,7 +22,7 @@ public class Block {
 	/*
 	 * Class constructor.
 	 */
-	public Block ()
+	public Block (int i, int j)
 	{
 		owner = 0;
 		traces = 0;
@@ -30,6 +30,8 @@ public class Block {
 		down = false;
 		left = false;
 		right = false;
+		x = (123 + (45 * i));
+		y = (115 + (45 *j));
 	}
 	
 	public void set_coordinates (int newX, int newY)

@@ -1,7 +1,6 @@
 package game;
 
 import java.awt.Graphics2D;
-import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -55,10 +54,8 @@ public class GameBoard
 	private Vector<LinkedList <Block_Storage>> traces_list;
 	
 	// Definition.
-	private Rectangle vert_coll_detector[][];
-	private Trace vertical_trace[][];
-	private Rectangle hori_coll_detector[][];
 	private Trace horizontal_trace[][];
+	private Trace vertical_trace[][];
 	
 	// Special points
 	private Point last_selection;
@@ -130,23 +127,13 @@ public class GameBoard
 			}
 
 		block = new Block[16][12];
-		for (int i = 0; i < 16; i++) for (int j = 0; j < 12; j++) 
-		{
-			block[i][j] = new Block();
-			block[i][j].set_coordinates((123 + (45 * i)), (115 + (45 *j)));
-		}
-		
-		vertical_trace = new Trace[17][12];
-		for (int R = 0; R < 17; R++) for (int C = 0; C < 12; C++) vertical_trace[R][C] = new Trace();
-		
-		vert_coll_detector = new Rectangle[17][12];
-		for (int R = 0; R < 17; R++) { for (int C = 0; C < 12; C++) vert_coll_detector[R][C] = new Rectangle((115 + (45 * R)), (126 + (45 * C)), 17, 30); }
+		for (int i = 0; i < 16; i++) for (int j = 0; j < 12; j++) block[i][j] = new Block(i, j);
 		
 		horizontal_trace = new Trace[16][13];
-		for (int R = 0; R < 16; R++) for (int C = 0; C < 13; C++) horizontal_trace[R][C] = new Trace();
+		for (int R = 0; R < 16; R++) for (int C = 0; C < 13; C++) horizontal_trace[R][C] = new Trace(0, R, C);
 		
-		hori_coll_detector = new Rectangle[16][13];
-		for (int R = 0; R < 16; R++) { for (int C = 0; C < 13; C++) hori_coll_detector[R][C] = new Rectangle((131 + (45 * R)), (110 + (45 * C)), 30, 17); }
+		vertical_trace = new Trace[17][12];
+		for (int R = 0; R < 17; R++) for (int C = 0; C < 12; C++) vertical_trace[R][C] = new Trace(1, R, C);
 		
 		number_of_players = 0;
 		
@@ -207,7 +194,7 @@ public class GameBoard
 		current_player = 1;
 		player_selection_background.setVisible(true);
 		
-		if (_2players.contem(cursorX, cursorY))
+		if (_2players.contains(cursorX, cursorY))
 		{
 			_2players.setState(1);
 			_3players.setState(0);
@@ -224,7 +211,7 @@ public class GameBoard
 				return 0;
 			}
 		}
-		else if (_3players.contem(cursorX, cursorY))
+		else if (_3players.contains(cursorX, cursorY))
 		{
 			_2players.setState(0);
 			_3players.setState(1);
@@ -243,7 +230,7 @@ public class GameBoard
 				return 0;
 			}
 		}
-		else if (_4players.contem(cursorX, cursorY))
+		else if (_4players.contains(cursorX, cursorY))
 		{
 			_2players.setState(0);
 			_3players.setState(0);
@@ -280,7 +267,7 @@ public class GameBoard
 	private int check_warnings(int cursorX, int cursorY, boolean clicked)
 	{
 		// If the cursor is hovering continue button
-		if (continue_button.contem(cursorX, cursorY))
+		if (continue_button.contains(cursorX, cursorY))
 		{
 			continue_button.setState(1);
 			cancel.setState(0);
@@ -291,7 +278,7 @@ public class GameBoard
 				return 1;
 			}
 		}
-		else if (cancel.contem(cursorX, cursorY))
+		else if (cancel.contains(cursorX, cursorY))
 		{
 			continue_button.setState(0);
 			cancel.setState(1);
@@ -318,7 +305,7 @@ public class GameBoard
 		current_selection.set_active(false);
 		
 		// If mouse hovers on menu button.
-		if(menu.contem(cursorX, cursorY)) 
+		if(menu.contains(cursorX, cursorY)) 
 		{
 			menu.setState(1);
 			options.setState(0);
@@ -331,7 +318,7 @@ public class GameBoard
 			}
 		}
 		// If mouse hovers on options button.
-		else if(options.contem(cursorX, cursorY)) 
+		else if(options.contains(cursorX, cursorY)) 
 		{
 			options.setState(1);
 			menu.setState(0);
@@ -370,13 +357,13 @@ public class GameBoard
 			// Testing collision with the boundaries.
 			if(row < 16 && column < 12)
 			{
-				if (vert_coll_detector[row][column].contains(cursorX, cursorY)) 
+				if (vertical_trace[row][column].contains(cursorX, cursorY)) 
 				{
 					current_selection.set_active(true);
 					current_selection.set_coordinates(row, column, 1);
 					orientation = 1;
 				}
-				else if (hori_coll_detector[row][column].contains(cursorX, cursorY)) 
+				else if (horizontal_trace[row][column].contains(cursorX, cursorY)) 
 				{
 					current_selection.set_active(true);
 					current_selection.set_coordinates(row, column, 0);
@@ -386,7 +373,7 @@ public class GameBoard
 			}
 			else if (row == 16 && column < 12)
 			{
-				if (vert_coll_detector[row][column].contains(cursorX, cursorY)) 
+				if (vertical_trace[row][column].contains(cursorX, cursorY)) 
 				{
 					current_selection.set_active(true);
 					current_selection.set_coordinates(row, column, 1);
@@ -396,7 +383,7 @@ public class GameBoard
 			}
 			else if (row < 16 && column == 12)
 			{
-				if (hori_coll_detector[row][column].contains(cursorX, cursorY)) 
+				if (horizontal_trace[row][column].contains(cursorX, cursorY)) 
 				{
 					current_selection.set_active(true);
 					current_selection.set_coordinates(row, column, 0);
@@ -415,16 +402,7 @@ public class GameBoard
 					if (!horizontal_trace[row][column].get_marked())
 					{
 						// Updating the trace.
-						horizontal_trace[row][column].set_marked(true);
-						switch (current_player)
-						{
-							case 1: horizontal_trace[row][column].set_image(new File("res/InGame/bar_hor_1.png")); break;
-							case 2: horizontal_trace[row][column].set_image(new File("res/InGame/bar_hor_2.png")); break;
-							case 3: horizontal_trace[row][column].set_image(new File("res/InGame/bar_hor_3.png")); break;
-							case 4: horizontal_trace[row][column].set_image(new File("res/InGame/bar_hor_4.png")); break;
-						}
-						horizontal_trace[row][column].set_active(true);
-						horizontal_trace[row][column].set_coordinates((119 + (45 * row)), (114 + (45 * column)));
+						horizontal_trace[row][column].set_marked(current_player);
 						
 						// Updating the block.
 						if(row >= 0 && row < 16 && column > 0 && column < 12)
@@ -473,16 +451,7 @@ public class GameBoard
 					if (!vertical_trace[row][column].get_marked())
 					{
 						// Updating the trace.
-						vertical_trace[row][column].set_marked(true);
-						switch (current_player)
-						{
-							case 1: vertical_trace[row][column].set_image(new File("res/InGame/bar_ver_1.png")); break;
-							case 2: vertical_trace[row][column].set_image(new File("res/InGame/bar_ver_2.png")); break;
-							case 3: vertical_trace[row][column].set_image(new File("res/InGame/bar_ver_3.png")); break;
-							case 4: vertical_trace[row][column].set_image(new File("res/InGame/bar_ver_4.png")); break;
-						}
-						vertical_trace[row][column].set_active(true);
-						vertical_trace[row][column].set_coordinates((119 + (45 * row)), (116 +(45 * column)));
+						vertical_trace[row][column].set_marked(current_player);
 						
 						// Updating the block.
 						if(row > 0 && row < 16 && column >= 0 && column < 12)
@@ -552,8 +521,8 @@ public class GameBoard
 	 */
 	private int AI_move () throws IOException
 	{
-		int row;
-		int column;
+		int row = 0;
+		int column = 0;
 		int orientation = -1;
 		boolean block_closed = false;
 		Block_Storage storage = new Block_Storage();
@@ -588,140 +557,7 @@ public class GameBoard
 			row = storage.row;
 			column = storage.collum;
 		}
-		else if (!traces_list.get(0).isEmpty())
-		{
-			storage = traces_list.get(0).get(0);
-			row = storage.row;
-			column = storage.collum;
-		}
-		else if (!traces_list.get(1).isEmpty())
-		{
-			storage = traces_list.get(1).get(0);
-			row = storage.row;
-			column = storage.collum;
-		}
-		else
-		{
-			storage = traces_list.get(2).get(0);
-			row = storage.row;
-			column = storage.collum;
-		}
 		
-		if (!block[row][column].get_down()) 
-		{
-			if (block[row][column].set_trace(1, current_player))
-			{
-				orientation = 0;
-				player[current_player - 1].set_score(1);
-				block_closed |= true;
-			}
-			
-			column++;
-			
-			if (column < 12)
-			{
-				if (block[row][column].set_trace(2, current_player))
-				{
-					orientation = 0;
-					player[current_player - 1].set_score(1);
-					block_closed |= true;
-				}
-			}
-		}
-		else if (!block[row][column].get_up()) 
-		{
-			if (block[row][column].set_trace(2, current_player))
-			{
-				orientation = 0;
-				player[current_player - 1].set_score(1);
-				block_closed |= true;
-			}
-			
-			if (column > 0)
-			{
-				if (block[row][column - 1].set_trace(1, current_player))
-				{
-					orientation = 0;
-					player[current_player - 1].set_score(1);
-					block_closed |= true;
-				}
-			}
-		}
-		else if (!block[row][column].get_left()) 
-		{
-			System.out.println("Passed.");
-			if (block[row][column].set_trace(3, current_player))
-			{
-				orientation = 1;
-				player[current_player - 1].set_score(1);
-				block_closed |= true;
-			}
-			
-			if (row > 0)
-			{
-				if (block[row - 1][column].set_trace(4, current_player))
-				{
-					orientation = 1;
-					player[current_player - 1].set_score(1);
-					block_closed |= true;
-				}
-			}
-		}
-		else if (!block[row][column].get_right()) 
-		{
-			if (block[row][column].set_trace(4, current_player))
-			{
-				orientation = 1;
-				player[current_player - 1].set_score(1);
-				block_closed |= true;
-			}
-			
-			row++;
-
-			if (row < 16)
-			{
-				if (block[row][column].set_trace(3, current_player))
-				{
-					orientation = 1;
-					player[current_player - 1].set_score(1);
-					block_closed |= true;
-				}
-			}
-		}
-		
-		// Visual stuff
-		if (orientation == 0)
-		{
-			if (row == 16) row = 15;
-			
-			horizontal_trace[row][column].set_marked(true);
-			switch (current_player)
-			{
-				case 1: horizontal_trace[row][column].set_image(new File("res/InGame/bar_hor_1.png")); break;
-				case 2: horizontal_trace[row][column].set_image(new File("res/InGame/bar_hor_2.png")); break;
-				case 3: horizontal_trace[row][column].set_image(new File("res/InGame/bar_hor_3.png")); break;
-				case 4: horizontal_trace[row][column].set_image(new File("res/InGame/bar_hor_4.png")); break;
-			}
-			horizontal_trace[row][column].set_active(true);
-			horizontal_trace[row][column].set_coordinates((119 + (45 * row)), (114 + (45 * column)));
-			
-		}
-		else
-		{	
-			if (column == 12) column = 11;
-			
-			vertical_trace[row][column].set_marked(true);
-			
-			switch (current_player)
-			{
-				case 1: vertical_trace[row][column].set_image(new File("res/InGame/bar_ver_1.png")); break;
-				case 2: vertical_trace[row][column].set_image(new File("res/InGame/bar_ver_2.png")); break;
-				case 3: vertical_trace[row][column].set_image(new File("res/InGame/bar_ver_3.png")); break;
-				case 4: vertical_trace[row][column].set_image(new File("res/InGame/bar_ver_4.png")); break;
-			}
-			vertical_trace[row][column].set_active(true);
-			vertical_trace[row][column].set_coordinates((119 + (45 * row)), (116 +(45 * column)));
-		}
 		
 		if (!last_selection.get_active()) last_selection.set_active(true);
 		last_selection.set_coordinates(row, column, orientation);

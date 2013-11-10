@@ -76,7 +76,7 @@ public class Menu
 	{
 		
 		// Searching for mouse position.
-		if(start.contem(cursorX, cursorY))
+		if(start.contains(cursorX, cursorY))
 		{ 
 			start.setState(1);
 			multiplayer.setState(0);
@@ -89,7 +89,7 @@ public class Menu
 				return 1;
 			}
 		}
-		else if(multiplayer.contem(cursorX, cursorY))
+		else if(multiplayer.contains(cursorX, cursorY))
 		{
 			start.setState(0);
 			multiplayer.setState(1);
@@ -102,7 +102,7 @@ public class Menu
 				return 2;
 			}
 		}
-		else if(records.contem(cursorX, cursorY))
+		else if(records.contains(cursorX, cursorY))
 		{
 			start.setState(0);
 			multiplayer.setState(0);
@@ -115,7 +115,7 @@ public class Menu
 				return 3;
 			}
 		}
-		else if(settings.contem(cursorX, cursorY))
+		else if(settings.contains(cursorX, cursorY))
 		{
 			start.setState(0);
 			multiplayer.setState(0);
