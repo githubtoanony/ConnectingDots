@@ -5,8 +5,11 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.util.LinkedList;
+import java.util.Random;
 import java.util.Vector;
+
 import javax.imageio.ImageIO;
+
 import components.Block;
 import components.Block_Storage;
 import components.Button;
@@ -553,11 +556,74 @@ public class GameBoard
 		// Choosing the block to mark
 		if (!traces_list.get(3).isEmpty()) 
 		{
-			storage = traces_list.get(3).get(0);
+			storage = traces_list.get(3).get(random(0, traces_list.get(3).size() - 1));
+			row = storage.row;
+			column = storage.collum;
+		}
+		else if (!traces_list.get(1).isEmpty() || !traces_list.get(0).isEmpty()) 
+		{
+			int aux = random(0, 1);
+			System.out.println("Lista " + aux);
+			
+			if (!traces_list.get(aux).isEmpty())
+			{
+				storage = traces_list.get(aux).get(random(0, traces_list.get(aux).size() - 1));
+			}
+			else if (aux == 0)
+			{
+				aux = 1;
+				storage = traces_list.get(aux).get(random(0, traces_list.get(aux).size() - 1));
+			}
+			else
+			{
+				aux = 0;
+				storage = traces_list.get(aux).get(random(0, traces_list.get(aux).size() - 1));
+			}
+			row = storage.row;
+			column = storage.collum;
+		}
+		else
+		{
+			storage = traces_list.get(2).get(random(0, traces_list.get(2).size() - 1));
 			row = storage.row;
 			column = storage.collum;
 		}
 		
+		// Choosing the trace
+		if (!block[row][column].get_down())
+		{
+			orientation = 0;
+			block[row][column].set_trace(1, current_player);
+			if (row < 12) block[row + 1][column].set_trace(2, current_player);
+			else block[12][column].set_trace(2, current_player);
+			horizontal_trace[row + 1][column].set_marked(current_player);
+			row++;
+		}
+		else if (!block[row][column].get_up())
+		{
+			orientation = 0;
+			block[row][column].set_trace(2, current_player);
+			if (row >= 0) block[row - 1][column].set_trace(1, current_player);
+			else block[0][column].set_trace(1, current_player);
+			horizontal_trace[row][column].set_marked(current_player);
+		}
+		else if (!block[row][column].get_left())
+		{
+			orientation = 1;
+			block[row][column].set_trace(3, current_player);
+			if (column < 16) block[row][column + 1].set_trace(4, current_player);
+			else block[row][16].set_trace(4, current_player);
+			vertical_trace[row][column].set_marked(current_player);
+		}
+		else if (!block[row][column].get_right())
+		{
+			orientation = 1;
+			block[row][column].set_trace(4, current_player);
+			if (column >= 0) block[row][column - 1].set_trace(3, current_player);
+			else block[row][0].set_trace(3, current_player);
+			vertical_trace[row][column + 1].set_marked(current_player);
+			column++;
+		}
 		
 		if (!last_selection.get_active()) last_selection.set_active(true);
 		last_selection.set_coordinates(row, column, orientation);
@@ -572,6 +638,21 @@ public class GameBoard
 		System.out.println("0: " + traces_list.get(0).size() + " 1: "+ traces_list.get(1).size() + " 2: "+ traces_list.get(2).size() + " 3: " + traces_list.get(3).size() + " 4: " + traces_list.get(4).size());
 		
 		return 0;
+	}
+	
+	/*
+	 * Generates a random int.
+	 */
+	public static int random(int min, int max) {
+
+	    // Usually this can be a field rather than a method variable
+	    Random rand = new Random();
+
+	    // nextInt is normally exclusive of the top value,
+	    // so add 1 to make it inclusive
+	    int randomNum = rand.nextInt((max - min) + 1) + min;
+
+	    return randomNum;
 	}
 	
 	/*
